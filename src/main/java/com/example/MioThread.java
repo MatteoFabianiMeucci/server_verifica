@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.Random;
 
 import javax.print.DocFlavor.STRING;
 
@@ -20,16 +19,12 @@ public class MioThread extends Thread{
         this.contatore = 0;
     }
 
-    public int generaNuovoNumero(){
-        Random r = new Random();
-        return r.nextInt(100);
-    }
-
     public void run(){
         try (BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()))) {
             DataOutputStream out = new DataOutputStream(s.getOutputStream());
 
             String stringRicevuta;
+            String stringInviata;
             boolean acceso = true;
 
             do{
@@ -37,7 +32,7 @@ public class MioThread extends Thread{
                 try{
                     int num = Integer.parseInt(stringRicevuta);
 
-                    if(num >= 0 && num<= 100){
+                    if(num >= 0 || num<= 100){
                         if (num < numero){
                             out.writeBytes("<\n");
                             contatore++;
@@ -49,27 +44,15 @@ public class MioThread extends Thread{
                         }
 
                         if (num == numero) {
-                            contatore++;
                             out.writeBytes("=\n");
                             out.writeBytes(contatore + "\n");
+                            acceso = false;
                         }
                     } 
-
-                    if (stringRicevuta.equals("y")) {
-                        System.out.println("entra");
-                        numero = generaNuovoNumero();
-                        contatore = 0;
-                    }
-
-                    if (stringRicevuta.equals("n")) {
-                        acceso = false;
-                    }
-
                 } catch (Exception e){
                     out.writeBytes("!\n");
                 }
             } while(acceso);
-            s.close();
 
         } catch (IOException e) {
             e.printStackTrace();
